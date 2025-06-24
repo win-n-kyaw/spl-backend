@@ -7,9 +7,12 @@ class Base(DeclarativeBase):
 
 class User(Base):
     __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    password = Column(String, nullable=False)
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
 
 # class LicensePlate(Base):
 #     __tablename__ = 'license_plates'
