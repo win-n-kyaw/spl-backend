@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends
 from contextlib import asynccontextmanager
-from db.session import engine, Session
+from db.session import engine
 from db.models import Base, User
-from auth.utils import hash_password
-from auth.schemas import UserCreate, UserResponse
+from routes.auth import router as auth_router
+from auth import jwt
+from routes.user import router as user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -12,27 +13,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-def get_db():
-    db = Session()
-    try:
-        yield db
-    finally:
-        db.close()
+app.include_router(auth_router)
+app.include_router(user_router)
 
-
-@app.post("/users/", response_model=UserResponse)
-def create_user(user: UserCreate, db = Depends(get_db)):
-    # Check if email already exists
-    if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    new_user = User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hash_password(user.password)
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+@app.get("/protected")
+def protected(current_user: User = Depends(jwt.get_current_user)):
+    # print(current_user.email)
+    return "Congrats..."
 

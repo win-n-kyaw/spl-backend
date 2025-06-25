@@ -21,3 +21,10 @@ url = URL.create(
 
 engine = create_engine(url, echo=True, future=True)
 Session = sessionmaker(bind=engine)
+
+def get_db():
+    db = Session()
+    try:
+        yield db
+    finally:
+        db.close()
