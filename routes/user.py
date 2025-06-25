@@ -6,7 +6,7 @@ from db.models import User
 
 router = APIRouter(tags=['Users'])
 
-@router.post("/users/", response_model=UserResponse)
+@router.post("/users", response_model=UserResponse)
 def create_user(user: UserCreate, db = Depends(get_db)):
     # Check if email already exists
     if db.query(User).filter(User.email == user.email).first():

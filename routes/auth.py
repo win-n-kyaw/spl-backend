@@ -9,7 +9,7 @@ from auth.jwt import create_access_token
 router = APIRouter(tags=['Authentication'])
 
 @router.post('/login')
-def login(user_credentials: OAuth2PasswordRequestForm= Depends(), db: Session = Depends(session.get_db)):
+def login(user_credentials: OAuth2PasswordRequestForm =Depends(), db: Session = Depends(session.get_db)):
     user = db.query(User).filter(User.email == user_credentials.username).first()
 
     if not user:
