@@ -7,7 +7,7 @@ from fastapi import Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from db import session, models
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 def create_access_token(data: dict):
     to_encode = data.copy()

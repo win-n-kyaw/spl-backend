@@ -1,6 +1,6 @@
-import datetime as _dt
-from sqlalchemy import Integer, String, Float, Column, ForeignKey, MetaData
+from sqlalchemy import Integer, String, Column, Enum
 from sqlalchemy.orm import DeclarativeBase
+from schemas.user import RoleEnum
 
 class Base(DeclarativeBase):
     pass
@@ -12,7 +12,8 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-
+    role = Column(Enum(RoleEnum), nullable=False, default=RoleEnum.operator)
+    
 
 # class LicensePlate(Base):
 #     __tablename__ = 'license_plates'
