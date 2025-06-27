@@ -16,11 +16,12 @@ url = URL.create(
     password=password,
     host="localhost",
     database=database,
-    port=6543
+    port=6543,
 )
 
 engine = create_engine(url, echo=True, future=True)
 Session = sessionmaker(bind=engine)
+
 
 def get_db():
     db = Session()

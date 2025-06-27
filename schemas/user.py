@@ -2,11 +2,13 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from schemas.enums import RoleEnum
 
+
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
     role: Optional[RoleEnum]
+
 
 class UserResponse(BaseModel):
     id: int
@@ -16,6 +18,7 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UserShow(BaseModel):
     id: int
     username: str
@@ -23,6 +26,7 @@ class UserShow(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class UserUpdate(BaseModel):
     username: str | None = None
