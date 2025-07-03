@@ -1,14 +1,15 @@
-from sqlalchemy import Integer, String, Column, Enum, DateTime, func
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import Integer, String, Column, Enum, DateTime, func, ForeignKey, Text 
+from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from schemas.user import RoleEnum
-
+from schemas.enums import RequestStatus
+from datetime import datetime
 
 class Base(DeclarativeBase):
     pass
 
 
-class User(Base):
-    __tablename__ = "users"
+class Admin(Base):
+    __tablename__ = "admins"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
@@ -26,9 +27,29 @@ class ParkingSnapshot(Base):
     available_spots = Column(Integer, nullable=False)
     total_spots = Column(Integer, default=30, nullable=False)
 
+# Client table
+class Client(Base):
+    __tablename__ = "clients"
 
-# class LicensePlate(Base):
-#     __tablename__ = 'license_plates'
-#     id = Column(Integer, primary_key=True)
-#     plate_num = Column(String, nullable=False)
-#     owner = Column(Integer, ForeignKey('users.id'))
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+
+    # Relationship
+    requests: Mapped[list["LicensePlateRequest"]] = relationship(
+        back_populates="client", cascade="all, delete-orphan"
+    )
+
+# License Plate Request table
+class LicensePlateRequest(Base):
+    __tablename__ = "license_plate_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("clients.id"), nullable=False)
+    plate_number: Mapped[str] = mapped_column(String(20), nullable=False)
+    plate_image_url: Mapped[str] = mapped_column(Text, nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    status: Mapped[RequestStatus] = mapped_column(default=RequestStatus.pending)
+
+    # Relationship
+    client: Mapped["Client"] = relationship(back_populates="requests")

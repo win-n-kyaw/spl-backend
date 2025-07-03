@@ -1,18 +1,18 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from db.session import engine
-from db.models import Base, User
+from db.models import Base, Admin
 from routes.auth import router as auth_router
 from routes.parking import router as parking_router
+from routes.register import router as register_router
+from routes.request import router as request_router
+from routes.plates import router as plate_router
 from auth import jwt
-from routes.user import router as user_router
+from routes.admin import router as user_router
 from dotenv import load_dotenv
 from mqtt.client import start_mqtt, stop_mqtt
 import os
-
-# import logging
-
-# logging.basicConfig(level=logging.DEBUG)
 
 load_dotenv()
 
@@ -31,12 +31,28 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+origins =[
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(parking_router)
+app.include_router(register_router)
+app.include_router(request_router)
+app.include_router(plate_router)
 
 
 @app.get("/protected")
-def protected(current_user: User = Depends(jwt.get_current_user)):
+def protected(current_user: Admin = Depends(jwt.get_current_user)):
     # print(current_user.email)
     return "Congrats..."

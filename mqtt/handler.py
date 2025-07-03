@@ -2,8 +2,6 @@ import json
 from schemas.parking import ParkingPayload
 from db.models import ParkingSnapshot
 from db.session import get_db
-from sqlalchemy.orm import Session
-from fastapi import Depends
 
 
 def on_connect(client, userdata, flags, rc, properties):

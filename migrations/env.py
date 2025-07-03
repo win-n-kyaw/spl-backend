@@ -7,12 +7,13 @@ import os
 
 from alembic import context
 
-load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 config = context.config
-# ✅ Inject env var into Alembic config
+
 if DATABASE_URL:
     config.set_main_option("sqlalchemy.url", DATABASE_URL)
 else:
@@ -73,7 +74,9 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection, target_metadata=target_metadata
+        )
 
         with context.begin_transaction():
             context.run_migrations()
