@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from helpers.registration_form_dependency import get_registration_form
-from helpers.google_drive import upload_file_to_drive
+# from helpers.google_drive import upload_file_to_drive
 from helpers.s3_cloudfront import upload_to_s3
 from db.models import Client, LicensePlateRequest
 from db.session import get_db
