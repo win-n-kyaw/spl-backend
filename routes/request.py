@@ -2,7 +2,7 @@ from fastapi import Depends, APIRouter, HTTPException
 from db.models import LicensePlateRequest, Admin
 from db.session import get_db
 from schemas.request import LicensePlateRequestWithClient, RequestStatusUpdate
-from schemas.enums import RequestStatus
+from enums import RequestStatus
 from sqlalchemy.orm import Session, joinedload
 from auth import jwt
 from typing import List
@@ -16,7 +16,7 @@ async def list_requests(db: Session = Depends(get_db), current_user: Admin = Dep
     
     pending_requests = (
         db.query(LicensePlateRequest)
-        .options(joinedload(LicensePlateRequest.client))
+        .options(joinedload(LicensePlateRequest.user))
         .filter(LicensePlateRequest.status == RequestStatus.pending)
         .all()
     )
@@ -30,8 +30,8 @@ async def list_requests(db: Session = Depends(get_db), current_user: Admin = Dep
             plate_number=req.plate_number,
             plate_image_url=req.plate_image_url,
             status=req.status,
-            client_name=req.client.name,
-            client_email=req.client.email
+            username=req.user.name,
+            user_email=req.user.email
         )
         for req in pending_requests
     ]

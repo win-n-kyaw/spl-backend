@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
-from schemas.enums import RequestStatus
+from enums import RequestStatus
 from schemas.request import LicensePlateRequestWithClient, LicensePlateUpdate
-from db.models import Admin, LicensePlateRequest, Client
+from db.models import Admin, LicensePlateRequest, User
 from auth import jwt
 from db.session import get_db
 
@@ -15,7 +15,7 @@ async def approved_plates(db: Session = Depends(get_db), current_user: Admin = D
 
     approve_requests = (
         db.query(LicensePlateRequest)
-        .options(joinedload(LicensePlateRequest.client))
+        .options(joinedload(LicensePlateRequest.user))
         .filter(LicensePlateRequest.status == RequestStatus.approved)
         .all()
     )
@@ -29,8 +29,8 @@ async def approved_plates(db: Session = Depends(get_db), current_user: Admin = D
             plate_number=req.plate_number,
             plate_image_url=req.plate_image_url,
             status=req.status,
-            client_name=req.client.name,
-            client_email=req.client.email
+            username=req.user.name,
+            user_email=req.user.email
         )
         for req in approve_requests
     ]
@@ -66,10 +66,10 @@ async def update_plate(
 
     # Update client_email (via FK relationship)
     if payload.client_email:
-        client = db.query(Client).filter(Client.email == payload.client_email).first()
-        if not client:
+        user = db.query(User).filter(User.email == payload.client_email).first()
+        if not user:
             raise HTTPException(status_code=404, detail="Client with that email not found")
-        plate.client_id = client.id
+        plate.user_id = user.id
 
     db.commit()
     db.refresh(plate)

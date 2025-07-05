@@ -9,7 +9,7 @@ def on_connect(client, userdata, flags, rc, properties):
         print("MQTT connected successfully.")
         topic = userdata.get("topic")
         if topic:
-            client.subscribe(topic)
+            client.subscribe(topic, qos=1)
             print(f"Subscribed to topic: {topic}")
     else:
         print(f"MQTT connection failed with code {rc}")
@@ -29,9 +29,13 @@ def on_message(client, userdata, msg):
 
         snapshot = ParkingSnapshot(
             lot_id=validated.lot_id,
-            available_spots=validated.available_spots,
-            total_spots=validated.total_spots,
             timestamp=validated.timestamp,
+            available_spaces=validated.available_spaces,
+            total_spaces=validated.total_spaces,
+            occupied_spaces=validated.occupied_spaces,
+            occupacy_rate=validated.occupancy_rate,
+            confidence=validated.confidence,
+            processing_time_seconds=validated.processing_time_seconds
         )
         db.add(snapshot)
         db.commit()

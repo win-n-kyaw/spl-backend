@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from schemas.enums import RoleEnum
+from enums import RoleEnum
 
 
 class UserCreate(BaseModel):

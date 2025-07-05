@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
-from schemas.enums import RequestStatus
+from enums import RequestStatus
 
 class LicensePlateRequestOut(BaseModel):
     id: int
@@ -19,8 +19,8 @@ class LicensePlateRequestWithClient(BaseModel):
     plate_image_url: str
     status: RequestStatus
 
-    client_name: str
-    client_email: EmailStr
+    username: str
+    user_email: EmailStr
 
     class Config:
         orm_mode = True

@@ -16,6 +16,7 @@ mqtt_client = mqtt.Client(
     callback_api_version=CallbackAPIVersion.VERSION2,
     client_id=client_id,
     userdata={"topic": MQTT_TOPIC},
+    clean_session=False
 )
 mqtt_client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
 mqtt_client.tls_set()

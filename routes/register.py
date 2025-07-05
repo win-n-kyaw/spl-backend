@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from helpers.registration_form_dependency import get_registration_form
 # from helpers.google_drive import upload_file_to_drive
 from helpers.s3_cloudfront import upload_to_s3
-from db.models import Client, LicensePlateRequest
+from db.models import User, LicensePlateRequest
 from db.session import get_db
 
 
@@ -20,17 +20,17 @@ async def register(form_data: dict = Depends(get_registration_form), db=Depends(
     #save to s3
     image_url = upload_to_s3(plate_photo)
 
-    # Check if client exists
-    client = db.query(Client).filter(Client.email == email).first()
-    if not client:
-        client = Client(name=name, email=email)
-        db.add(client)
+    # Check if user exists
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(name=name, email=email)
+        db.add(user)
         db.commit()
-        db.refresh(client)
+        db.refresh(user)
 
     # Create license plate request
     request = LicensePlateRequest(
-        client_id=client.id,
+        user_id=user.id,
         plate_number=plate_number,
         plate_image_url=image_url,
     )
