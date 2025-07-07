@@ -13,24 +13,36 @@ class LicensePlateRequestOut(BaseModel):
     class Config:
         orm_mode = True
 
+class RequestStatusUpdate(BaseModel):
+    status: RequestStatus  # "approved" or "declined"
+
+class LicensePlateUpdate(BaseModel):
+    status: Optional[RequestStatus] = None
+    user_email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    plate_number: Optional[str] = None
+    plate_image_url: Optional[str] = None
+
+class LicensePlateRequestCreate(BaseModel):
+    plate_number: str
+    plate_image_url: str
+    status: RequestStatus = RequestStatus.pending
+    username: str
+    user_email: EmailStr
+
 class LicensePlateRequestWithClient(BaseModel):
     id: int
     plate_number: str
     plate_image_url: str
     status: RequestStatus
-
     username: str
     user_email: EmailStr
 
     class Config:
         orm_mode = True
 
-class RequestStatusUpdate(BaseModel):
-    status: RequestStatus  # "approved" or "declined"
-
-class LicensePlateUpdate(BaseModel):
-    status: Optional[RequestStatus]
-    client_email: Optional[EmailStr]
-    plate_number: Optional[str] = None
-    plate_image_url: Optional[str] = None
-
+class LicensePlateCreate(BaseModel):
+    plate_number: str
+    plate_image_url: str
+    username: str
+    user_email: EmailStr

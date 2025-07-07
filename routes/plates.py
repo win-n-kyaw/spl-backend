@@ -1,77 +1,44 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
-from enums import RequestStatus
-from schemas.request import LicensePlateRequestWithClient, LicensePlateUpdate
-from db.models import Admin, LicensePlateRequest, User
-from auth import jwt
-from db.session import get_db
+from fastapi import APIRouter, Depends, File, Form, UploadFile
+from pydantic import EmailStr
+from schemas.request import LicensePlateUpdate, LicensePlateCreate
+from db.models import Admin
+from auth import dependencies
+from services.plate_service import PlateService
+from services.dependencies import get_plate_service
+from helpers.s3_cloudfront import upload_to_s3
 
 router = APIRouter(tags=["License Plates"])
 
 @router.get("/plates")
-async def approved_plates(db: Session = Depends(get_db), current_user: Admin = Depends(jwt.get_current_user)):
-    if current_user.role not in ("admin", "operator"):
-        raise HTTPException(status_code=401, detail="You are not authorized to perform this action")
+async def get_plates(
+    plate_service: PlateService = Depends(get_plate_service),
+    current_user: Admin = Depends(dependencies.get_current_user),
+):
+    return plate_service.get_all_plates(current_user)
 
-    approve_requests = (
-        db.query(LicensePlateRequest)
-        .options(joinedload(LicensePlateRequest.user))
-        .filter(LicensePlateRequest.status == RequestStatus.approved)
-        .all()
+@router.post("/plates")
+def create_plate(
+    email: EmailStr = Form(...),
+    name: str = Form(...),
+    plateNumber: str = Form(...),
+    photo: UploadFile = File(...),
+    plate_service: PlateService = Depends(get_plate_service),
+    current_user: Admin = Depends(dependencies.get_current_user),
+):
+    photo_url = upload_to_s3(photo)
+    payload = LicensePlateCreate(
+        user_email=email,
+        username=name,
+        plate_number=plateNumber,
+        plate_image_url=photo_url,
     )
-
-    if not approve_requests:
-        return []
-
-    return [
-        LicensePlateRequestWithClient(
-            id=req.id,
-            plate_number=req.plate_number,
-            plate_image_url=req.plate_image_url,
-            status=req.status,
-            username=req.user.name,
-            user_email=req.user.email
-        )
-        for req in approve_requests
-    ]
-
+    return plate_service.create_plate(current_user, payload)
 
 @router.put("/plates/{plate_id}")
 async def update_plate(
     plate_id: int,
     payload: LicensePlateUpdate,
-    db: Session = Depends(get_db),
-    current_user = Depends(jwt.get_current_user)
+    plate_service: PlateService = Depends(get_plate_service),
+    current_user: Admin = Depends(dependencies.get_current_user),
 ):
-    if current_user.role not in ("admin", "operator"):
-        raise HTTPException(status_code=401, detail="Not authorized")
-
-    plate = db.query(LicensePlateRequest).filter(LicensePlateRequest.id == plate_id).first()
-    if not plate:
-        raise HTTPException(status_code=404, detail="License plate not found")
-
-    # Update plate_number
-    if payload.plate_number is not None:
-        plate.plate_number = payload.plate_number
-
-    # Update plate_image_url
-    if payload.plate_image_url is not None:
-        plate.plate_image_url = payload.plate_image_url
-
-    # Update status
-    if payload.status is not None:
-        if payload.status not in RequestStatus.__members__:
-            raise HTTPException(status_code=400, detail="Invalid status value")
-        plate.status = payload.status
-
-    # Update client_email (via FK relationship)
-    if payload.client_email:
-        user = db.query(User).filter(User.email == payload.client_email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Client with that email not found")
-        plate.user_id = user.id
-
-    db.commit()
-    db.refresh(plate)
-
-    return {"detail": "Plate updated successfully"}
+    return plate_service.update_plate(plate_id, payload, current_user)

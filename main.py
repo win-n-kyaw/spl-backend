@@ -3,13 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from db.session import engine
 from db.models import Base, Admin
-from routes.auth import router as auth_router
-from routes.parking import router as parking_router
+
+from routes.login_controller import login_router
+from routes.parking_controller import router as parking_router
 from routes.register import router as register_router
-from routes.request import router as request_router
+from routes.request_controller import request_router
 from routes.plates import router as plate_router
-from auth import jwt
-from routes.admin import router as user_router
+from auth import dependencies
+from routes.admin_controller import router as user_router
 from dotenv import load_dotenv
 from mqtt.client import start_mqtt, stop_mqtt
 import os
@@ -45,7 +46,7 @@ app.add_middleware(
 )
 
 
-app.include_router(auth_router)
+app.include_router(login_router)
 app.include_router(user_router)
 app.include_router(parking_router)
 app.include_router(register_router)
@@ -54,6 +55,6 @@ app.include_router(plate_router)
 
 
 @app.get("/protected")
-def protected(current_user: Admin = Depends(jwt.get_current_user)):
+def protected(current_user: Admin = Depends(dependencies.get_current_user)):
     # print(current_user.email)
     return "Congrats..."

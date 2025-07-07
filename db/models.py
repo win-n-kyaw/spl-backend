@@ -1,6 +1,6 @@
-from sqlalchemy import Integer, String, Column, Enum, DateTime, func, ForeignKey, Text , Float
+from sqlalchemy import Integer, String, Column, Enum, DateTime, func, ForeignKey, Float
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
-from schemas.user import RoleEnum
+from enums import RoleEnum
 from enums import RequestStatus
 from datetime import datetime
 
@@ -35,27 +35,35 @@ class ParkingSnapshot(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
 
-    # Relationship
-    requests: Mapped[list["LicensePlateRequest"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    license_plates = relationship("LicensePlate", back_populates="user", cascade="all, delete-orphan")
+    license_plate_requests = relationship("LicensePlateRequest", back_populates="user", cascade="all, delete-orphan")
 
 
-# License Plate Request table
+# License Plates table
+class LicensePlate(Base):
+    __tablename__ = "license_plates"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    plate_number = Column(String, nullable=False, unique=True)
+    plate_image_url = Column(String, nullable=False)
+
+    user = relationship("User", back_populates="license_plates")
+
+
+# License Plate Requests table
 class LicensePlateRequest(Base):
     __tablename__ = "license_plate_requests"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    plate_number: Mapped[str] = mapped_column(String(20), nullable=False)
-    plate_image_url: Mapped[str] = mapped_column(String, nullable=False)
-    submitted_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    status: Mapped[RequestStatus] = mapped_column(default=RequestStatus.pending)
+    id = Column(Integer, primary_key=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    plate_number = Column(String, nullable=False)
+    plate_image_url = Column(String, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    status = Column(Enum(RequestStatus), default=RequestStatus.pending, nullable=False)
 
-    # Relationship
-    user: Mapped["User"] = relationship(back_populates="requests")
-
+    user = relationship("User", back_populates="license_plate_requests")
