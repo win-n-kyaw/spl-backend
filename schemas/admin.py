@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from enums import RoleEnum
-from typing import Optional
+from typing import Optional, List
 
 class AdminOut(BaseModel):
     id: int
@@ -22,6 +22,10 @@ class AdminResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class AdminListResponse(BaseModel):
+    admins: List[AdminResponse]
+    total_pages: int
 
 class AdminCreate(BaseModel):
     username: str

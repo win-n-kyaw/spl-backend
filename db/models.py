@@ -15,7 +15,7 @@ class Admin(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(Enum(RoleEnum), nullable=False, default=RoleEnum.operator)
+    role = Column(Enum(RoleEnum, name="roleenum"), nullable=False, default=RoleEnum.operator)
 
 
 class ParkingSnapshot(Base):
@@ -64,6 +64,6 @@ class LicensePlateRequest(Base):
     plate_number = Column(String, nullable=False)
     plate_image_url = Column(String, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    status = Column(Enum(RequestStatus), default=RequestStatus.pending, nullable=False)
+    status = Column(Enum(RequestStatus, name="requeststatus"), default=RequestStatus.pending, nullable=False)
 
     user = relationship("User", back_populates="license_plate_requests")

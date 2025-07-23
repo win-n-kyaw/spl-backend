@@ -14,6 +14,10 @@ def get_parking_service(db: Session = Depends(get_db)) -> ParkingService:
     parking_repo = ParkingRepository(db)
     return ParkingService(parking_repo)
 
+def get_admin_repo(db: Session = Depends(get_db)) -> ImplAdminRepositoryInterface:
+    return ImplAdminRepositoryInterface(db)
+
+
 def get_admin_service(db: Session = Depends(get_db)) -> AdminService:
     admin_repo = ImplAdminRepositoryInterface(db)
     return AdminService(admin_repo)

@@ -1,6 +1,6 @@
 from repository.iadmin_repository import AdminRepositoryInterface
 from sqlalchemy.orm import Session
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from db.models import Admin
 
 class ImplAdminRepositoryInterface(AdminRepositoryInterface):
@@ -15,9 +15,10 @@ class ImplAdminRepositoryInterface(AdminRepositoryInterface):
         admin = self.db.query(Admin).filter(Admin.email == email).first()
         return admin
     
-    def get_all_admins(self) -> List[Admin]: 
-        admins = self.db.query(Admin).all()
-        return admins
+    def get_all_admins(self, page: int = 1, limit: int = 10) -> Tuple[List[Admin], int]:
+        total_admins = self.db.query(Admin).count()
+        admins = self.db.query(Admin).offset((page - 1) * limit).limit(limit).all()
+        return admins, total_admins
     
     def create_admin(self, admin: Admin) -> Admin:
         self.db.add(admin)
@@ -40,4 +41,4 @@ class ImplAdminRepositoryInterface(AdminRepositoryInterface):
         to_delete = self.db.query(Admin).filter_by(id=admin_id).first()
         self.db.delete(to_delete)
         self.db.commit()
-        return 
+        return

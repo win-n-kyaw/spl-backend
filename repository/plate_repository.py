@@ -7,8 +7,8 @@ class PlateRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_plate_with_user(self):
-        return self.db.query(LicensePlate).options(joinedload(LicensePlate.user)).all()
+    def get_plate_with_user(self, page: int = 1, limit: int = 10):
+        return self.db.query(LicensePlate).options(joinedload(LicensePlate.user)).offset((page - 1) * limit).limit(limit).all()
 
     def find_plate_by_id(self, plate_id: int):
         return self.db.query(LicensePlate).filter(LicensePlate.id == plate_id).first()
@@ -25,6 +25,11 @@ class PlateRepository:
         self.db.add(plate)
         self.db.commit()
         self.db.refresh(plate)
+        return plate
+
+    def delete_plate(self, plate: LicensePlate):
+        self.db.delete(plate)
+        self.db.commit()
         return plate
 
     def update_plate(self, plate: LicensePlate, payload: LicensePlateUpdate):
@@ -47,4 +52,4 @@ class PlateRepository:
                 setattr(user, 'name', payload.username)
         self.db.commit()
         self.db.refresh(plate)
-        return plate
+        return self.db.query(LicensePlate).options(joinedload(LicensePlate.user)).filter(LicensePlate.id == plate.id).first()

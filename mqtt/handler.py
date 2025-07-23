@@ -5,17 +5,21 @@ from db.session import get_db
 
 
 def on_connect(client, userdata, flags, rc, properties):
+    print(f"on_connect: client_id={client._client_id.decode()}, rc={rc}")
     if rc == 0:
         print("MQTT connected successfully.")
         topic = userdata.get("topic")
         if topic:
-            client.subscribe(topic, qos=1)
+            client.subscribe(topic, qos=1, options={"no_local": True})
             print(f"Subscribed to topic: {topic}")
     else:
         print(f"MQTT connection failed with code {rc}")
 
 
 def on_message(client, userdata, msg):
+    if msg.retain:
+        print(f"Ignoring retained message: topic={msg.topic}")
+        return
     try:
         topic = msg.topic
         payload = msg.payload.decode()

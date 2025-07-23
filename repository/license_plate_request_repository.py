@@ -36,8 +36,17 @@ class ImplLicensePlateRequestRepository(LicensePlateRequestRepositoryInferface):
         self.db.refresh(request)
         return request
 
-    def list_requests_with_user(self) -> list[LicensePlateRequest]:
-        return self.db.query(LicensePlateRequest).options(joinedload(LicensePlateRequest.user)).filter(LicensePlateRequest.status == RequestStatus.pending).all()
+    def list_requests_with_user(
+        self,
+        status: Optional[RequestStatus] = None,
+        page: int = 1,
+        limit: int = 10
+    ) -> list[LicensePlateRequest]:
+        query = self.db.query(LicensePlateRequest).options(joinedload(LicensePlateRequest.user))
+        if status:
+            query = query.filter(LicensePlateRequest.status == status)
+        
+        return query.offset((page - 1) * limit).limit(limit).all()
     
     def update_req_status(self, update_id, update_status: RequestStatusUpdate):
         to_update = self.db.query(LicensePlateRequest).filter(LicensePlateRequest.id == update_id).first()
@@ -51,5 +60,3 @@ class ImplLicensePlateRequestRepository(LicensePlateRequestRepositoryInferface):
         self.db.commit()
         self.db.refresh(plate)
         return plate
-    
-    

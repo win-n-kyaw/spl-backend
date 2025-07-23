@@ -1,50 +1,73 @@
-from fastapi import APIRouter, Depends, status
-from schemas.admin import AdminResponse, AdminCreate, AdminUpdate
+from fastapi import APIRouter, Depends, status, Query, Response
+from schemas.admin import AdminResponse, AdminCreate, AdminUpdate, AdminListResponse
 from typing import List
 from auth import dependencies
 from services.admin_service import AdminService
 from services.dependencies import get_admin_service
+from db.models import Admin
 
-router = APIRouter(tags=["Admins"])
+router = APIRouter(
+    prefix="/admins",
+    tags=["Admins"],
+    responses={
+        401: {"description": "Unauthorized"},
+    },
+)
 
 
-## Get all users
-@router.get("/admin", response_model=List[AdminResponse])
-async def get_all_user(
+@router.get("/", response_model=AdminListResponse)
+async def get_all_admins(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     admin_service: AdminService = Depends(get_admin_service),
-    current_user=Depends(dependencies.get_current_user),
+    current_user: Admin = Depends(dependencies.get_current_admin_user),
 ):
-    return admin_service.get_all_admins()
+    """
+    Get all admin users with pagination.
+    Requires admin privileges.
+    """
+    admins = admin_service.get_all_admins(current_user, page, limit)
+    return admins
 
 
-## Create User only by admin
-@router.post("/admin", response_model=AdminResponse, status_code=status.HTTP_201_CREATED)
-def create_user(
+@router.post("/", response_model=AdminResponse, status_code=status.HTTP_201_CREATED)
+def create_admin(
     new_admin: AdminCreate,
     admin_service: AdminService = Depends(get_admin_service),
-    current_user=Depends(dependencies.get_current_user),
+    current_user: Admin = Depends(dependencies.get_current_admin_user),
 ):
-    return admin_service.create_admin(new_admin, current_user)
+    """
+    Create a new admin user.
+    Requires admin privileges.
+    """
+    admin = admin_service.create_admin(new_admin, current_user)
+    return admin
 
 
-## Edit User Credientials
-@router.patch("/admin/edit/{edit_id}", response_model=AdminResponse)
-async def edit_user(
-    edit_id: int,
+@router.patch("/{admin_id}", response_model=AdminResponse)
+async def update_admin(
+    admin_id: int,
     admin_update: AdminUpdate,
     admin_service: AdminService = Depends(get_admin_service),
-    current_user=Depends(dependencies.get_current_user),
+    current_user: Admin = Depends(dependencies.get_current_admin_user),
 ):
-    updated = admin_service.update_admin(edit_id, admin_update, current_user)
-    return updated
+    """
+    Update an admin's credentials.
+    Requires admin privileges.
+    """
+    updated_admin = admin_service.update_admin(admin_id, admin_update, current_user)
+    return updated_admin
 
 
-## Delete User Admin delete any record, Operator allow self-deletion
-@router.delete("/admin/{admin_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(
-    admin_id,
+@router.delete("/{admin_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_admin(
+    admin_id: int,
     admin_service: AdminService = Depends(get_admin_service),
-    current_user=Depends(dependencies.get_current_user),
+    current_user: Admin = Depends(dependencies.get_current_admin_user),
 ):
+    """
+    Delete an admin user.
+    Requires admin privileges.
+    """
     admin_service.delete_admin(admin_id, current_user)
-    return
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

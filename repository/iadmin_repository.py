@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from db.models import Admin
 
 class AdminRepositoryInterface(ABC):
@@ -13,7 +13,7 @@ class AdminRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def get_all_admins(self) -> List[Admin]:
+    def get_all_admins(self, page: int, limit: int) -> Tuple[List[Admin], int]:
         pass
 
     @abstractmethod

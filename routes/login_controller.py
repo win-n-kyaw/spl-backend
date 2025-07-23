@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from services.admin_service import AdminService
 from auth.dependencies import create_access_token
@@ -13,8 +13,14 @@ def login(
 ):
     admin = admin_service.authenticate_admin(credentials.username, credentials.password)
 
-    if admin:
-        access_token = create_access_token(
-            {"user_id": admin.id, "role": admin.role.value}
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        return {"access_token": access_token, "token_type": "bearer"}
+
+    access_token = create_access_token(
+        {"user_id": admin.id, "role": admin.role.value}
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

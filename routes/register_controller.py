@@ -4,10 +4,10 @@ from services.plate_request_service import PlateRequestService
 from services.dependencies import get_plate_request_service
 
 
-router = APIRouter(tags=["Plate registeration"])
+register_router: APIRouter = APIRouter(tags=["Plate registeration"])
 
-@router.post("/register")
-async def register(
+@register_router.post("/register")
+async def register_plate(
     form_data: dict = Depends(get_registration_form),
     service: PlateRequestService = Depends(get_plate_request_service),
 ):

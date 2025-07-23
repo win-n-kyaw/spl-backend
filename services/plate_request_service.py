@@ -4,32 +4,39 @@ from schemas.request import LicensePlateRequestWithClient, RequestStatusUpdate, 
 from db.models import LicensePlate
 from helpers.s3_cloudfront import upload_to_s3
 from enums import RequestStatus
+from typing import Optional
 
 
 class PlateRequestService:
     def __init__(self, repo: ImplLicensePlateRequestRepository):
         self.repo = repo
     
-    def get_all_plate_requests(self, current_user) -> list[LicensePlateRequestWithClient]:
-            if current_user.role not in ("admin", "operator"):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="You are not authorized to perform this action"
-                )
-            
-            plate_requests = self.repo.list_requests_with_user()
-            
-            return [
-                LicensePlateRequestWithClient(
-                    id=req.id, # type: ignore
-                    plate_number=req.plate_number, # type: ignore
-                    plate_image_url=req.plate_image_url, # type: ignore
-                    status=req.status.value,
-                    username=req.user.name,
-                    user_email=req.user.email
-                )
-                for req in plate_requests
-            ]
+    def get_all_plate_requests(
+        self,
+        current_user,
+        request_status: Optional[RequestStatus] = None,
+        page: int = 1,
+        limit: int = 10
+    ) -> list[LicensePlateRequestWithClient]:
+        if current_user.role not in ("admin", "operator"):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="You are not authorized to perform this action"
+            )
+        
+        plate_requests = self.repo.list_requests_with_user(status=request_status, page=page, limit=limit)
+        
+        return [
+            LicensePlateRequestWithClient(
+                id=req.id, # type: ignore
+                plate_number=req.plate_number, # type: ignore
+                plate_image_url=req.plate_image_url, # type: ignore
+                status=req.status.value,
+                username=req.user.name,
+                user_email=req.user.email
+            )
+            for req in plate_requests
+        ]
 
     def create_plate_request(self, form_data: dict):
         name = form_data["name"]
@@ -56,6 +63,9 @@ class PlateRequestService:
                 detail="Unauthorized"
             )
         updated_request = self.repo.update_req_status(req_id, new_status)
+
+        if not updated_request:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
 
         # If approved, add to LicensePlate table
         if updated_request and new_status.status.lower() == "approved":
