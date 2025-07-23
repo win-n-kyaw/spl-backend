@@ -5,6 +5,7 @@ from db.session import get_db
 
 
 def on_connect(client, userdata, flags, rc, properties):
+    print(f"on_connect: client_id={client._client_id.decode()}, rc={rc}")
     if rc == 0:
         print("MQTT connected successfully.")
         topic = userdata.get("topic")
