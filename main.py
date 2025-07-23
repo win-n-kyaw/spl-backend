@@ -9,7 +9,7 @@ from routes.request_controller import request_router
 from routes.plate_controller import router as plate_router
 from routes.admin_controller import router as user_router
 from dotenv import load_dotenv
-from mqtt.client import start_mqtt, stop_mqtt
+from mqtt.client import mqttClient
 import os
 
 load_dotenv()
@@ -17,14 +17,14 @@ load_dotenv()
 BROKER_HOST = os.getenv("MQTT_BROKER_HOST", default="localhost")
 MQTT_USER = os.getenv("MQTT_USER")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
-
+mqtt_client = mqttClient()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    start_mqtt()
+    mqtt_client.start_mqtt()
     # Base.metadata.create_all(bind=engine)
     yield
-    stop_mqtt()
+    mqtt_client.stop_mqtt()
 
 
 app = FastAPI(lifespan=lifespan)
