@@ -23,7 +23,7 @@ class ParkingSnapshot(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     lot_id = Column(String, default="CAMT_01", nullable=False)
-    timestamp = Column(DateTime(timezone=True), default=func.now(), nullable=False)
+    timestamp = Column(DateTime(), nullable=False)
     available_spaces = Column(Integer, nullable=False)
     total_spaces = Column(Integer, default=30, nullable=False)
     occupied_spaces = Column(Integer, nullable=False)

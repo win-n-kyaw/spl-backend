@@ -6,7 +6,7 @@ from services.dependencies import get_plate_request_service
 
 register_router: APIRouter = APIRouter(tags=["Plate registeration"])
 
-@register_router.post("/register")
+@register_router.post("/api/register")
 async def register_plate(
     form_data: dict = Depends(get_registration_form),
     service: PlateRequestService = Depends(get_plate_request_service),

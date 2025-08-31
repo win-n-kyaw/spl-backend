@@ -9,7 +9,7 @@ from enums import RequestStatus
 
 request_router: APIRouter = APIRouter(tags=["Registeration requests"])
 
-@request_router.get("/requests", response_model=List[LicensePlateRequestWithClient])
+@request_router.get("/api/requests", response_model=List[LicensePlateRequestWithClient])
 async def list_requests(
     status: Optional[RequestStatus] = Query(None),
     page: int = Query(1, ge=1),
@@ -20,7 +20,7 @@ async def list_requests(
     return service.get_all_plate_requests(current_user, status, page, limit)
 
 # request in context means license plate registration request
-@request_router.put("/requests/{request_id}")
+@request_router.put("/api/requests/{request_id}")
 def update_request_status(
     request_id: int,
     payload: RequestStatusUpdate,

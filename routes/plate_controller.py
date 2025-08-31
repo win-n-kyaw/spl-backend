@@ -9,7 +9,7 @@ from helpers.s3_cloudfront import upload_to_s3
 
 router = APIRouter(tags=["License Plates"])
 
-@router.get("/plates")
+@router.get("/api/plates")
 async def get_plates(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
@@ -20,7 +20,7 @@ async def get_plates(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     return plate_service.get_all_plates(current_user, page, limit)
 
-@router.post("/plates")
+@router.post("/api/plates")
 def create_plate(
     email: EmailStr = Form(...),
     name: str = Form(...),
@@ -40,7 +40,7 @@ def create_plate(
     )
     return plate_service.create_plate(current_user, payload)
 
-@router.put("/plates/{plate_id}")
+@router.put("/api/plates/{plate_id}")
 async def update_plate(
     plate_id: int,
     plate_number: str = Form(...),
@@ -66,7 +66,7 @@ async def update_plate(
     return plate_service.update_plate(plate_id, payload, current_user)
 
 
-@router.delete("/plates/{plate_id}")
+@router.delete("/api/plates/{plate_id}")
 async def delete_plate(
     plate_id: int,
     plate_service: PlateService = Depends(get_plate_service),

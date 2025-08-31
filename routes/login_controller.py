@@ -6,7 +6,7 @@ from services.dependencies import get_admin_service
 
 login_router: APIRouter = APIRouter(tags=["Login"])
 
-@login_router.post("/login")
+@login_router.post("/api/login")
 def login(
     credentials: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminService = Depends(get_admin_service),

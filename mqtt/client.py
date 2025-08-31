@@ -10,7 +10,7 @@ MQTT_USER = os.getenv("MQTT_USER")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 MQTT_HOST = os.getenv("MQTT_BROKER_HOST", "localhost")
 MQTT_TOPIC = os.getenv("MQTT_TOPIC")
-client_id = "spl-backend-dev"
+client_id = os.getenv("MQTT_CLIENT")
 
 class mqttClient:
     def __init__(self):

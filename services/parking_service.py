@@ -1,11 +1,13 @@
+import requests
 from fastapi import HTTPException, status
 from repository.iparking_repository import IParkingRepository
 from schemas.parking import ParkingSnapshotCreate, ParkingSnapshotResponse
 
 
 class ParkingService:
-    def __init__(self, parking_repo: IParkingRepository):
+    def __init__(self, parking_repo: IParkingRepository, base_url: str = "http://10.41.11.21:9696"):
         self.parking_repo = parking_repo
+        self.edge_base_url = base_url
 
     def get_latest_snapshot(self) -> ParkingSnapshotResponse:
         snapshot = self.parking_repo.get_latest_snapshot()
@@ -19,3 +21,37 @@ class ParkingService:
     def create_snapshot(self, snapshot_data: ParkingSnapshotCreate) -> ParkingSnapshotResponse:
         snapshot = self.parking_repo.create_snapshot(snapshot_data)
         return ParkingSnapshotResponse.from_orm(snapshot)
+    
+    def infer_parking1_snapshot(self) -> bytes:
+        """
+        Calls the inference server and returns the visualization image bytes.
+        """
+        url = f"{self.edge_base_url}/infer/parking1"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Inference server error: {response.status_code}",
+            )
+        return response.content  # raw image bytes
+    
+    def open_gate(self) -> dict:
+        """
+        Calls the edge server's /open endpoint to trigger the relay.
+        """
+        url = f"{self.edge_base_url}/open"
+        try:
+            response = requests.get(url, timeout=5)
+        except requests.RequestException as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Edge server unreachable: {e}",
+            )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Edge server error: {response.status_code}",
+            )
+
+        return response.json()

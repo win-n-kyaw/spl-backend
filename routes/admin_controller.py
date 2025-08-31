@@ -1,13 +1,11 @@
 from fastapi import APIRouter, Depends, status, Query, Response
 from schemas.admin import AdminResponse, AdminCreate, AdminUpdate, AdminListResponse
-from typing import List
 from auth import dependencies
 from services.admin_service import AdminService
 from services.dependencies import get_admin_service
 from db.models import Admin
 
 router = APIRouter(
-    prefix="/admins",
     tags=["Admins"],
     responses={
         401: {"description": "Unauthorized"},
@@ -15,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=AdminListResponse)
+@router.get("/api/admins", response_model=AdminListResponse)
 async def get_all_admins(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
@@ -30,7 +28,7 @@ async def get_all_admins(
     return admins
 
 
-@router.post("/", response_model=AdminResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/api/admins", response_model=AdminResponse, status_code=status.HTTP_201_CREATED)
 def create_admin(
     new_admin: AdminCreate,
     admin_service: AdminService = Depends(get_admin_service),
@@ -44,7 +42,7 @@ def create_admin(
     return admin
 
 
-@router.patch("/{admin_id}", response_model=AdminResponse)
+@router.patch("/api/admins/{admin_id}", response_model=AdminResponse)
 async def update_admin(
     admin_id: int,
     admin_update: AdminUpdate,
@@ -59,7 +57,7 @@ async def update_admin(
     return updated_admin
 
 
-@router.delete("/{admin_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/api/admins/{admin_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_admin(
     admin_id: int,
     admin_service: AdminService = Depends(get_admin_service),
