@@ -21,6 +21,13 @@ def get_parking1_inference(
     image_bytes = parking_service.infer_parking1_snapshot()
     return Response(content=image_bytes, media_type="image/jpeg")
 
+@router.get("/inference2")
+def get_parking2_inference(
+    parking_service: ParkingService = Depends(get_parking_service),
+):
+    image_bytes = parking_service.infer_parking2_snapshot()
+    return Response(content=image_bytes, media_type="image/jpeg")
+
 @router.get("/open")
 def get_open_gate(
     parking_service: ParkingService = Depends(get_parking_service),

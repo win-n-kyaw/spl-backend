@@ -35,6 +35,19 @@ class ParkingService:
             )
         return response.content  # raw image bytes
     
+    def infer_parking2_snapshot(self) -> bytes:
+        """
+        Calls the inference server and returns the visualization image bytes.
+        """
+        url = f"{self.edge_base_url}/infer/parking2"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Inference server error: {response.status_code}",
+            )
+        return response.content  # raw image bytes
+    
     def open_gate(self) -> dict:
         """
         Calls the edge server's /open endpoint to trigger the relay.
