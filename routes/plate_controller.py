@@ -5,9 +5,18 @@ from db.models import Admin
 from auth import dependencies
 from services.plate_service import PlateService
 from services.dependencies import get_plate_service
-from helpers.s3_cloudfront import upload_to_s3
+from helpers.s3_cloudfront import S3CloudFront
+import os
 
 router = APIRouter(tags=["License Plates"])
+
+s3_cloudfront = S3CloudFront(
+    os.getenv("AWS_ACCESS_KEY"),
+    os.getenv("AWS_SECRET_ACCESS_KEY"),
+    os.getenv("S3_REGION"),
+    os.getenv("S3_BUCKET"),
+    os.getenv("CLOUDFRONT_URL"),
+)
 
 @router.get("/api/plates")
 async def get_plates(
@@ -31,7 +40,7 @@ def create_plate(
 ):
     if not current_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    photo_url = upload_to_s3(photo)
+    photo_url = s3_cloudfront.upload_file(photo.file, photo.filename)
     payload = LicensePlateCreate(
         user_email=email,
         username=name,
@@ -55,7 +64,7 @@ async def update_plate(
 
     photo_url = None
     if file:
-        photo_url = upload_to_s3(file)
+        photo_url = s3_cloudfront.upload_file(file.file, file.filename)
 
     payload = LicensePlateUpdate(
         plate_number=plate_number,

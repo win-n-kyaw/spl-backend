@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, HTTPException
 from schemas.entry_record import EntryRecord
 from services.entry_record_service import EntryRecordService
 from services.dependencies import get_entry_record_service
@@ -14,3 +14,30 @@ def get_all_entry_records(
     end_date: Optional[date] = Query(None)
 ):
     return entry_record_service.get_all_entry_records(start_date=start_date, end_date=end_date)
+
+@router.put("/entry-records/{entry_id}", response_model=EntryRecord)
+def update_entry_record(
+    entry_id: int,
+    plate_number: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    entry_record_service: EntryRecordService = Depends(get_entry_record_service),
+):
+    try:
+        return entry_record_service.update_entry_record(
+            entry_id=entry_id,
+            plate_number=plate_number,
+            file=file,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/entry-records/{entry_id}", status_code=204)
+def delete_entry_record(
+    entry_id: int,
+    entry_record_service: EntryRecordService = Depends(get_entry_record_service),
+):
+    try:
+        entry_record_service.delete_entry_record(entry_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Entry record deleted successfully"}

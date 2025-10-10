@@ -2,14 +2,22 @@ from fastapi import HTTPException, status
 from repository.license_plate_request_repository import ImplLicensePlateRequestRepository
 from schemas.request import LicensePlateRequestWithClient, RequestStatusUpdate, LicensePlateRequestCreate
 from db.models import LicensePlate
-from helpers.s3_cloudfront import upload_to_s3
+from helpers.s3_cloudfront import S3CloudFront
 from enums import RequestStatus
 from typing import Optional
+import os
 
 
 class PlateRequestService:
     def __init__(self, repo: ImplLicensePlateRequestRepository):
         self.repo = repo
+        self.s3_cloudfront = S3CloudFront(
+            os.getenv("AWS_ACCESS_KEY"),
+            os.getenv("AWS_SECRET_ACCESS_KEY"),
+            os.getenv("S3_REGION"),
+            os.getenv("S3_BUCKET"),
+            os.getenv("CLOUDFRONT_URL"),
+        )
     
     def get_all_plate_requests(
         self,
@@ -44,7 +52,7 @@ class PlateRequestService:
         plate_number = form_data["plate_number"]
         plate_photo = form_data["plate_photo"]
 
-        image_url = upload_to_s3(plate_photo)
+        image_url = self.s3_cloudfront.upload_file(plate_photo.file, plate_photo.filename)
 
         request_data = LicensePlateRequestCreate(
             username=name,

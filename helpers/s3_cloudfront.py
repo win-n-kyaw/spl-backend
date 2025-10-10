@@ -1,35 +1,31 @@
 import boto3
-import uuid
-import os
-from fastapi import UploadFile
-from dotenv import load_dotenv
+from botocore.exceptions import NoCredentialsError
 
-load_dotenv()
+class S3CloudFront:
+    def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, bucket_name, cloudfront_domain):
+        self.s3_client = boto3.client(
+            's3',
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name
+        )
+        self.bucket_name = bucket_name
+        self.cloudfront_domain = cloudfront_domain
 
-S3_BUCKET=os.getenv("S3_BUCKET")
-S3_REGION=os.getenv("S3_REGION")
-CLOUDFRONT_URL=os.getenv("CLOUDFRONT_URL")
-AWS_ACCESS_KEY=os.getenv("AWS_ACCESS_KEY")
-AWS_SECRET_ACCESS_KEY=os.getenv("AWS_SECRET_ACCESS_KEY")
+    def upload_file(self, file, file_name):
+        try:
+            self.s3_client.upload_fileobj(file, self.bucket_name, file_name)
+            return f"{self.cloudfront_domain}/{file_name}"
+        except NoCredentialsError:
+            return "Credentials not available"
+        except Exception as e:
+            return str(e)
 
-s3 = boto3.client(
-    "s3",
-    region_name=S3_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
-
-def upload_to_s3(file: UploadFile) -> str:
-    extension = file.filename.split('.')[-1] #type: ignore
-    key = f"plates/{uuid.uuid4()}.{extension}"
-
-    s3.upload_fileobj(
-        file.file,
-        S3_BUCKET,
-        key,
-        ExtraArgs={"ContentType": file.content_type}
-    )
-
-    return f"https://{CLOUDFRONT_URL}/{key}"
-
-
+    def delete_file(self, file_name):
+        try:
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=file_name)
+            return True
+        except NoCredentialsError:
+            return "Credentials not available"
+        except Exception as e:
+            return str(e)
