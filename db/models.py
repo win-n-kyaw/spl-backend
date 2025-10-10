@@ -67,3 +67,12 @@ class LicensePlateRequest(Base):
     status = Column(Enum(RequestStatus, name="requeststatus"), default=RequestStatus.pending, nullable=False)
 
     user = relationship("User", back_populates="license_plate_requests")
+
+
+class EntryRecord(Base):
+    __tablename__ = "entry_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    plate_number = Column(String, nullable=False)
+    plate_image_url = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)

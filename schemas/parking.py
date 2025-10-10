@@ -28,3 +28,9 @@ class ParkingSnapshotResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LicensePlatePayload(BaseModel):
+    plate_number: str
+    plate_image_url: str
+    timestamp: Optional[datetime] = None

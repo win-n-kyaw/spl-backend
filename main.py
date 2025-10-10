@@ -8,6 +8,7 @@ from routes.register_controller import register_router
 from routes.request_controller import request_router
 from routes.plate_controller import router as plate_router
 from routes.admin_controller import router as user_router
+from routes.entry_record_controller import router as entry_record_router
 from dotenv import load_dotenv
 from mqtt.client import mqttClient
 import os
@@ -51,3 +52,4 @@ app.include_router(parking_router)
 app.include_router(register_router)
 app.include_router(request_router)
 app.include_router(plate_router)
+app.include_router(entry_record_router)

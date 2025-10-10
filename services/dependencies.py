@@ -9,6 +9,12 @@ from repository.license_plate_request_repository import ImplLicensePlateRequestR
 from services.plate_request_service import PlateRequestService
 from services.parking_service import ParkingService
 from repository.parking_repository import ParkingRepository
+from repository.entry_record_repository import EntryRecordRepository
+from services.entry_record_service import EntryRecordService
+
+def get_entry_record_service(db: Session = Depends(get_db)) -> EntryRecordService:
+    entry_record_repo = EntryRecordRepository(db)
+    return EntryRecordService(entry_record_repo)
 
 def get_parking_service(db: Session = Depends(get_db)) -> ParkingService:
     parking_repo = ParkingRepository(db)

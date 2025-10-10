@@ -1,7 +1,8 @@
 import json
-from schemas.parking import ParkingPayload
-from db.models import ParkingSnapshot
+from schemas.parking import ParkingPayload, LicensePlatePayload
+from db.models import ParkingSnapshot, EntryRecord
 from db.session import get_db
+from datetime import datetime
 
 
 def on_connect(client, userdata, flags, rc, properties):
@@ -11,6 +12,7 @@ def on_connect(client, userdata, flags, rc, properties):
         topic = userdata.get("topic")
         if topic:
             client.subscribe(topic, qos=1, options={"no_local": True})
+            client.subscribe("test/license", qos=1, options={"no_local": True})
             print(f"Subscribed to topic: {topic}")
     else:
         print(f"MQTT connection failed with code {rc}")
@@ -20,39 +22,52 @@ def on_message(client, userdata, msg):
     if msg.retain:
         print(f"Ignoring retained message: topic={msg.topic}")
         return
+
+    db_gen = get_db()
+    db = next(db_gen)
+
     try:
         topic = msg.topic
         payload = msg.payload.decode()
         print(f"Message received: topic={topic}, payload={payload}")
 
         data = json.loads(payload)
-        validated = ParkingPayload(**data)
 
-        db_gen = get_db()
-        db = next(db_gen)
+        if topic == "test/parking":
+            validated = ParkingPayload(**data)
+            snapshot = ParkingSnapshot(
+                lot_id=validated.lot_id,
+                timestamp=validated.timestamp if validated.timestamp else datetime.utcnow(),
+                available_spaces=validated.available_spaces,
+                total_spaces=validated.total_spaces,
+                occupied_spaces=validated.occupied_spaces,
+                occupacy_rate=validated.occupancy_rate,
+                confidence=validated.confidence,
+                processing_time_seconds=validated.processing_time_seconds
+            )
+            db.add(snapshot)
+            db.commit()
+            print("Parking snapshot saved to DB")
 
-        snapshot = ParkingSnapshot(
-            lot_id=validated.lot_id,
-            timestamp=validated.timestamp,
-            available_spaces=validated.available_spaces,
-            total_spaces=validated.total_spaces,
-            occupied_spaces=validated.occupied_spaces,
-            occupacy_rate=validated.occupancy_rate,
-            confidence=validated.confidence,
-            processing_time_seconds=validated.processing_time_seconds
-        )
-        db.add(snapshot)
-        db.commit()
+        elif topic == "test/license":
+            validated = LicensePlatePayload(**data)
+            entry_record = EntryRecord(
+                plate_number=validated.plate_number,
+                plate_image_url=validated.plate_image_url,
+                timestamp=validated.timestamp if validated.timestamp else datetime.utcnow()
+            )
+            db.add(entry_record)
+            db.commit()
+            print("Entry record saved to DB")
 
-        print("Saved to DB")
+        else:
+            print(f"Unhandled topic: {topic}")
 
     except Exception as err:
         print(f"Error processing message: {err}")
+        db.rollback()
     finally:
-        try:
-            db_gen.close()  # type: ignore
-        except:
-            pass
+        db.close()
 
 
 # Sample Payload
@@ -66,4 +81,9 @@ def on_message(client, userdata, msg):
 #   "available_spots": 12,
 #   "total_spots": 30,
 #   "timestamp": "2025-06-27T14:30:00Z"
+# }
+
+# {
+#     "plate_number": "WE3342",
+#     "plate_image_url": "abcd"
 # }
