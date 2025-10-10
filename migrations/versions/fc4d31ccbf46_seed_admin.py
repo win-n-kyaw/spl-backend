@@ -13,8 +13,9 @@ from sqlalchemy.orm import Session
 
 from db.models import Admin
 from enums import RoleEnum
-from auth.utils import hash_password
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # revision identifiers, used by Alembic.
 revision: str = 'fc4d31ccbf46'
@@ -33,7 +34,7 @@ def upgrade():
         user = Admin(
             username="admin",
             email="admin@gmail.com",
-            hashed_password=hash_password(
+            hashed_password=pwd_context.hash(
                 "admin123"
             ),  # use a strong real password in production
             role=RoleEnum.admin,

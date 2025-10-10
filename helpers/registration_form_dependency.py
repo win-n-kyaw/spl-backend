@@ -1,7 +1,6 @@
 from fastapi import Form, File, UploadFile
 from pydantic import EmailStr
 
-# Helper function (optional) if you want reusable dependency
 def get_registration_form(
     name: str = Form(...),
     email: EmailStr = Form(...),

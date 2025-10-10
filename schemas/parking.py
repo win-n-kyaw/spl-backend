@@ -15,12 +15,22 @@ class ParkingPayload(BaseModel):
 
 
 
+class ParkingSnapshotCreate(ParkingPayload):
+    pass
+
+
 class ParkingSnapshotResponse(BaseModel):
     id: int
     lot_id: str
     timestamp: datetime
-    available_spots: int
-    total_spots: int
+    available_spaces: int
+    total_spaces: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class LicensePlatePayload(BaseModel):
+    plate_number: str
+    plate_image_url: str
+    timestamp: Optional[datetime] = None

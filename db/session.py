@@ -6,20 +6,24 @@ import os
 
 load_dotenv()
 
-username = os.getenv("POSTGRES_USER")
-password = os.getenv("POSTGRES_PASSWORD")
-database = os.getenv("POSTGRES_DB")
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    engine = create_engine(database_url, echo=True, future=True)
+else:
+    username = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    database = os.getenv("POSTGRES_DB")
 
-url = URL.create(
-    drivername="postgresql",
-    username=username,
-    password=password,
-    host="localhost",
-    database=database,
-    port=6543,
-)
+    url = URL.create(
+        drivername="postgresql",
+        username=username,
+        password=password,
+        host="postgres",
+        database=database,
+        port=5432,
+    )
 
-engine = create_engine(url, echo=True, future=True)
+    engine = create_engine(url, echo=True, future=True)
 Session = sessionmaker(bind=engine)
 
 
