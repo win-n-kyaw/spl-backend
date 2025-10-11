@@ -33,3 +33,24 @@ def get_open_gate(
     parking_service: ParkingService = Depends(get_parking_service),
 ):
     return parking_service.open_gate()
+
+
+@router.get("/exit-gate/status")
+def get_exit_gate_status(
+    parking_service: ParkingService = Depends(get_parking_service),
+):
+    return parking_service.get_exit_gate_status()
+
+
+@router.post("/exit-gate/start")
+def start_exit_gate_service(
+    parking_service: ParkingService = Depends(get_parking_service),
+):
+    return parking_service.start_exit_gate_service()
+
+
+@router.post("/exit-gate/stop")
+def stop_exit_gate_service(
+    parking_service: ParkingService = Depends(get_parking_service),
+):
+    return parking_service.stop_exit_gate_service()

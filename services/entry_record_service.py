@@ -27,14 +27,14 @@ class EntryRecordService:
             raise Exception("Entry record not found")
 
         if file:
-            if db_entry_record.plate_image_url:
+            if db_entry_record.plate_image_url: # type: ignore
                 old_filename = db_entry_record.plate_image_url.split("/")[-1]
                 self.s3_cloudfront.delete_file(old_filename)
 
             file_url = self.s3_cloudfront.upload_file(file.file, file.filename)
-            db_entry_record.plate_image_url = file_url
+            db_entry_record.plate_image_url = file_url # type: ignore
 
-        db_entry_record.plate_number = plate_number
+        db_entry_record.plate_number = plate_number # type: ignore
 
         updated_record = self.entry_record_repository.update_entry_record(db_entry_record)
         return EntryRecord.from_orm(updated_record)
@@ -44,7 +44,7 @@ class EntryRecordService:
         if not db_entry_record:
             raise Exception("Entry record not found")
 
-        if db_entry_record.plate_image_url:
+        if db_entry_record.plate_image_url: # type: ignore
             filename = db_entry_record.plate_image_url.split("/")[-1]
             self.s3_cloudfront.delete_file(filename)
 

@@ -68,3 +68,48 @@ class ParkingService:
             )
 
         return response.json()
+
+    def get_exit_gate_status(self) -> dict:
+        """
+        Gets the status of the exit gate service from the edge server.
+        """
+        url = f"{self.edge_base_url}/exit-gate/status"
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Edge server unreachable: {e}",
+            )
+
+    def start_exit_gate_service(self) -> dict:
+        """
+        Starts the exit gate service on the edge server.
+        """
+        url = f"{self.edge_base_url}/exit-gate/start"
+        try:
+            response = requests.post(url, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Edge server unreachable: {e}",
+            )
+
+    def stop_exit_gate_service(self) -> dict:
+        """
+        Stops the exit gate service on the edge server.
+        """
+        url = f"{self.edge_base_url}/exit-gate/stop"
+        try:
+            response = requests.post(url, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Edge server unreachable: {e}",
+            )
