@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import UploadFile
 from repository.ientry_record_repository import IEntryRecordRepository
-from schemas.entry_record import EntryRecord
+from schemas.entry_record import EntryRecord, WeeklyUsage
 from datetime import date
 from helpers.s3_cloudfront import S3CloudFront
 import os
@@ -49,3 +49,6 @@ class EntryRecordService:
             self.s3_cloudfront.delete_file(filename)
 
         self.entry_record_repository.delete_entry_record(entry_id)
+
+    def get_weekly_usage(self) -> List[WeeklyUsage]:
+        return self.entry_record_repository.get_last_7_days_entry_records()

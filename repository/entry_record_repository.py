@@ -1,11 +1,13 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from db.models import EntryRecord
 from repository.ientry_record_repository import IEntryRecordRepository
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timedelta
+from schemas.entry_record import WeeklyUsage
 
 class EntryRecordRepository(IEntryRecordRepository):
-    def __init__(self, db: Session):
+    def __init__(self, db: Session): 
         self.db = db
 
     def get_all_entry_records(self, start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[EntryRecord]:
@@ -32,3 +34,28 @@ class EntryRecordRepository(IEntryRecordRepository):
         if entry_record:
             self.db.delete(entry_record)
             self.db.commit()
+
+    def get_last_7_days_entry_records(self) -> List[WeeklyUsage]:
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=7)
+
+        results = (
+            self.db.query(
+                func.date(EntryRecord.timestamp).label("date"),
+                func.count(EntryRecord.id).label("count"),
+            )
+            .filter(EntryRecord.timestamp >= start_date)
+            .group_by(func.date(EntryRecord.timestamp))
+            .order_by(func.date(EntryRecord.timestamp))
+            .all()
+        )
+        
+        # Create a dictionary with all dates in the last 7 days initialized to 0
+        date_counts = { (end_date - timedelta(days=i)).strftime("%Y-%m-%d") : 0 for i in range(7) }
+
+        # Update the counts for dates that have records
+        for result in results:
+            date_counts[result.date.strftime("%Y-%m-%d")] = result.count #type: ignore
+
+        # Convert the dictionary to a list of dictionaries
+        return [WeeklyUsage(date=date, count=count) for date, count in date_counts.items()]

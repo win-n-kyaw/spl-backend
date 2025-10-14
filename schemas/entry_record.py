@@ -22,3 +22,8 @@ class EntryRecord(EntryRecordBase):
 
     class Config:
         from_attributes = True
+
+
+class WeeklyUsage(BaseModel):
+    date: str
+    count: int

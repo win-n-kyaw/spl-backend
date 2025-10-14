@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod
 from typing import List, Optional
 from db.models import EntryRecord
 from datetime import date
+from schemas.entry_record import WeeklyUsage
 
 class IEntryRecordRepository(ABC):
     @abstractmethod
@@ -18,4 +20,8 @@ class IEntryRecordRepository(ABC):
 
     @abstractmethod
     def delete_entry_record(self, entry_id: int) -> None:
+        pass
+
+    @abstractmethod
+    def get_last_7_days_entry_records(self) -> List[WeeklyUsage]:
         pass

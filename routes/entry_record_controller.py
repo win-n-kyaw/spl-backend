@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, HTTPException
-from schemas.entry_record import EntryRecord
+from schemas.entry_record import EntryRecord, WeeklyUsage
 from services.entry_record_service import EntryRecordService
 from services.dependencies import get_entry_record_service
 from datetime import date
@@ -14,6 +14,12 @@ def get_all_entry_records(
     end_date: Optional[date] = Query(None)
 ):
     return entry_record_service.get_all_entry_records(start_date=start_date, end_date=end_date)
+
+@router.get("/entry-records/weekly-usage", response_model=List[WeeklyUsage])
+def get_weekly_usage(
+    entry_record_service: EntryRecordService = Depends(get_entry_record_service),
+):
+    return entry_record_service.get_weekly_usage()
 
 @router.put("/entry-records/{entry_id}", response_model=EntryRecord)
 def update_entry_record(
