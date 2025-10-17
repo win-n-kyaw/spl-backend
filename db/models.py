@@ -31,6 +31,21 @@ class ParkingSnapshot(Base):
     confidence= Column(Float, nullable=False)
     processing_time_seconds = Column(Float, nullable=False)
 
+
+class ParkingSnapshot2(Base):
+    __tablename__ = "parking_snapshots_camera2"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lot_id = Column(String, default="CAMT_02", nullable=False)
+    timestamp = Column(DateTime(), nullable=False)
+    available_spaces = Column(Integer, nullable=False)
+    total_spaces = Column(Integer, default=30, nullable=False)
+    occupied_spaces = Column(Integer, nullable=False)
+    occupacy_rate = Column(Float, nullable=False)
+    confidence= Column(Float, nullable=False)
+    processing_time_seconds = Column(Float, nullable=False)
+
+
 # User table
 class User(Base):
     __tablename__ = "users"

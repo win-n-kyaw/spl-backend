@@ -9,7 +9,6 @@ load_dotenv()
 MQTT_USER = os.getenv("MQTT_USER")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 MQTT_HOST = os.getenv("MQTT_BROKER_HOST", "localhost")
-MQTT_TOPIC = os.getenv("MQTT_TOPIC")
 client_id = os.getenv("MQTT_CLIENT")
 
 class mqttClient:
@@ -17,7 +16,6 @@ class mqttClient:
         self.mqtt_client = mqtt.Client(
             callback_api_version=CallbackAPIVersion.VERSION2,
             client_id=client_id,
-            userdata={"topic": MQTT_TOPIC},
             clean_session=True
         )
         self.mqtt_client.username_pw_set(MQTT_USER, MQTT_PASSWORD)

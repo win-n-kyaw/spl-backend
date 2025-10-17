@@ -18,6 +18,15 @@ class ParkingService:
             )
         return ParkingSnapshotResponse.from_orm(snapshot)
 
+    def get_latest_snapshot2(self) -> ParkingSnapshotResponse:
+        snapshot = self.parking_repo.get_latest_snapshot2()
+        if not snapshot:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No parking snapshot found",
+            )
+        return ParkingSnapshotResponse.from_orm(snapshot)
+
     def create_snapshot(self, snapshot_data: ParkingSnapshotCreate) -> ParkingSnapshotResponse:
         snapshot = self.parking_repo.create_snapshot(snapshot_data)
         return ParkingSnapshotResponse.from_orm(snapshot)

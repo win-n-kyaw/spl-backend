@@ -1,6 +1,6 @@
 import json
 from schemas.parking import ParkingPayload, LicensePlatePayload
-from db.models import ParkingSnapshot, EntryRecord
+from db.models import ParkingSnapshot, EntryRecord, ParkingSnapshot2
 from db.session import get_db
 from datetime import datetime
 
@@ -9,11 +9,9 @@ def on_connect(client, userdata, flags, rc, properties):
     print(f"on_connect: client_id={client._client_id.decode()}, rc={rc}")
     if rc == 0:
         print("MQTT connected successfully.")
-        topic = userdata.get("topic")
-        if topic:
-            client.subscribe(topic, qos=1, options={"no_local": True})
-            client.subscribe("test/license", qos=1, options={"no_local": True})
-            print(f"Subscribed to topic: {topic}")
+        client.subscribe("test/parking", qos=1, options={"no_local": True})
+        client.subscribe("test/parking2", qos=1, options={"no_local": True})
+        client.subscribe("test/license", qos=1, options={"no_local": True})
     else:
         print(f"MQTT connection failed with code {rc}")
 
@@ -47,7 +45,23 @@ def on_message(client, userdata, msg):
             )
             db.add(snapshot)
             db.commit()
-            print("Parking snapshot saved to DB")
+            print("Parking snapshot 1 saved to DB")
+
+        elif topic == "test/parking2":
+            validated = ParkingPayload(**data)
+            snapshot = ParkingSnapshot2(
+                lot_id=validated.lot_id,
+                timestamp=validated.timestamp if validated.timestamp else datetime.utcnow(),
+                available_spaces=validated.available_spaces,
+                total_spaces=validated.total_spaces,
+                occupied_spaces=validated.occupied_spaces,
+                occupacy_rate=validated.occupancy_rate,
+                confidence=validated.confidence,
+                processing_time_seconds=validated.processing_time_seconds
+            )
+            db.add(snapshot)
+            db.commit()
+            print("Parking snapshot 2 saved to DB")
 
         elif topic == "test/license":
             validated = LicensePlatePayload(**data)

@@ -14,6 +14,13 @@ def get_latest_snapshot(
     return parking_service.get_latest_snapshot()
 
 
+@router.get("/snapshot2/latest", response_model=ParkingSnapshotResponse, status_code=status.HTTP_200_OK)
+def get_latest_snapshot2(
+    parking_service: ParkingService = Depends(get_parking_service),
+):
+    return parking_service.get_latest_snapshot2()
+
+
 @router.get("/inference")
 def get_parking1_inference(
     parking_service: ParkingService = Depends(get_parking_service),
